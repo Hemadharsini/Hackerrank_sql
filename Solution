@@ -1,0 +1,22 @@
+with cte1 as 
+(
+    select Task_ID, Start_Date,End_Date, lag(End_Date)over(order by End_Date) as lag1,
+    case 
+    when lag(End_Date)over(order by End_Date) = Start_Date then 0
+    else 1
+    end as temp_seq
+    
+    from Projects
+),
+cte2 as
+(
+    select Task_ID, Start_Date,End_Date,lag1,temp_seq, sum(temp_seq)over(order by End_Date)as sum_temp_seq from cte1
+),
+cte3 as
+(
+    select min(Start_Date) as s_date, max(End_Date) as e_date, count(sum_temp_seq)as count_days from cte2
+group by sum_temp_seq
+
+)
+select s_date,e_date from cte3
+order by count_days,s_date;
